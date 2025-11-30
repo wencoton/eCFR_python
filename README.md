@@ -7,8 +7,8 @@ A self-contained Python web application designed to download, analyze and visual
 
 **Requirements**
 1.	Write codes to download the current eCFR data from: 
-URL_AGENCIES = https://www.ecfr.gov/api/admin/v1/agencies.json
-URL_CORRECTIONS = https://www.ecfr.gov/api/admin/v1/corrections.json
+https://www.ecfr.gov/api/admin/v1/agencies.json
+https://www.ecfr.gov/api/admin/v1/corrections.json
 
 2.	Store the data server-side, create APIs that can retrieve the server-side stored data, 
 3.	Provide a UI to analyze it for items such as word count per agency, historical changes over time, and a checksum for each agency. 
