@@ -21,6 +21,18 @@ A self-contained Python web application designed to download, analyze and visual
 
 - **Error Handling:** Includes retry logic and user-friendly status messages for network operations.
 
+**Project Structure**
+
+This is a single-file application (**ecfr_analyzer.py**) which contains:
+
+- **Database Layer:** SQLite initialization and schema management.
+
+- **ETL Layer:** Logic to fetch and normalize data from eCFR.
+
+- **Flask Backend:** Routes for serving the UI and API data.
+
+- **Frontend:** Embedded HTML/CSS/JavaScript for the dashboard.
+  
 **Prerequisites**
 
 - Python 3.6+
@@ -112,18 +124,6 @@ The application exposes two internal API endpoints used by the frontend:
 - **POST /api/refresh**: Triggers the download of JSON data from eCFR and updates the SQLite database.
 
 - **GET /api/analysis**: Returns aggregated statistics, historical trends, and agency lists in JSON format.
-
-**Project Structure**
-
-This is a single-file application (**ecfr_analyzer.py**) which contains:
-
-- **Database Layer:** SQLite initialization and schema management.
-
-- **ETL Layer:** Logic to fetch and normalize data from eCFR.
-
-- **Flask Backend:** Routes for serving the UI and API data.
-
-- **Frontend:** Embedded HTML/CSS/JavaScript for the dashboard.
 
   [eCFR.gov]: https://www.ecfr.gov/
 
