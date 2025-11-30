@@ -7,7 +7,7 @@ A self-contained Python web application designed to download, analyze and visual
 
 **Requirements**
 1.	Write codes to download the current eCFR data from: 
-https://www.ecfr.gov/api/admin/v1/agencies.json
+https://www.ecfr.gov/api/admin/v1/agencies.json and 
 https://www.ecfr.gov/api/admin/v1/corrections.json
 
 2.	Store the data server-side, create APIs that can retrieve the server-side stored data, 
@@ -137,5 +137,48 @@ The application exposes two internal API endpoints used by the frontend:
 - **GET /api/analysis**: Returns aggregated statistics, historical trends, and agency lists in JSON format.
 
   [eCFR.gov]: https://www.ecfr.gov/
+
+**CODES EXPLAINATION**
+Here is a step-by-step technical breakdown of the ecfr_analyzer.py script described in the Canvas, tailored for developers and technical staff.
+**1. Architecture Overview**
+The application is a monolithic, single-file microservice built on Flask. It follows a standard MVC (Model-View-Controller) pattern, though compressed into one file:
+•	Model: SQLite3 (Server-side persistence).
+•	Controller: Flask route handlers (@app.route) managing API logic.
+•	View: A single HTML string template served via render_template_string, containing embedded CSS and Vanilla JavaScript.
+**2. Database Initialization (The Model)**
+On application startup (if __name__ == '__main__':), the script calls init_db().
+•	Persistence: It connects to ecfr_data.db. If the file doesn't exist, SQLite creates it.
+•	Schema Definition: It executes DDL statements to create two normalized tables if they don't exist:
+o	agencies: Stores metadata like name, short_name, and a calculated checksum.
+o	corrections: Stores historical event data (correction_date, title).
+**3. The ETL Pipeline (Extract, Transform, Load)**
+The core logic resides in the download_ecfr_data() and save_data() functions, triggered via the /api/refresh endpoint.
+•	Extract (Ingestion):
+o	Uses the requests library to perform blocking GET requests to the defined URL_AGENCIES and URL_CORRECTIONS constants.
+o	Implements try...except blocks to handle requests.exceptions.RequestException (timeouts, DNS failures, non-200 status codes).
+•	Transform (Processing):
+o	Normalization: The script handles inconsistent API responses (e.g., finding the correct key for dates among effective_on, publication_date, etc.) using logical OR coalescing.
+o	Hashing: For the agencies table, it serializes the JSON object and generates an MD5 hash (hashlib.md5) to create a checksum for data integrity verification.
+•	Load (Storage):
+o	Opens a thread-safe sqlite3 connection.
+o	Executes a truncate-and-load strategy (DELETE FROM ... followed by INSERT INTO ...).
+o	Commits the transaction to persist changes to disk.
+**4. API Endpoints (The Controller)**
+The Flask app exposes two RESTful endpoints consumed by the frontend fetch API:
+•	POST /api/refresh:
+o	Orchestrates the ETL process.
+o	Returns HTTP 200 on success or HTTP 500 with a JSON error payload if the extraction fails.
+•	GET /api/analysis:
+o	Querying: Fetches raw rows from SQLite using sqlite3.Row factories for dict-like access.
+o	Aggregation: Uses Python's collections.Counter to aggregate correction dates into histograms (e.g., grouping by YYYY-MM).
+o	Business Logic: Calculates the "Most Volatile Year" by sorting frequency counts and computes word counts for agency names.
+o	Serialization: Returns a JSON object containing the processed dataset ready for client-side rendering.
+**5. Frontend Implementation (The View)**
+The UI is served via the root route /.
+•	DOM Manipulation: Uses Vanilla JavaScript (no frameworks like React or Vue) to parse the JSON response from /api/analysis and inject HTML into the DOM.
+•	Client-Side Visualization:
+o	Tables: Dynamically builds HTML table rows based on the agency array.
+o	Charts: Generates an SVG line chart programmatically using JavaScript string interpolation to calculate polyline coordinates and render <circle> elements for data points.
+•	Search: Implements a client-side filter (array.filter) on the keyup event to instantly refine the table display without additional server requests.
 
 
