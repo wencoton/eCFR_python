@@ -140,7 +140,7 @@ The application exposes two internal API endpoints used by the frontend:
 
 **CODES EXPLAINATION**
 
-Here is a step-by-step technical breakdown of the ecfr\_analyzer.py script described in the Canvas, tailored for developers and technical staff.
+Here is a step-by-step technical breakdown of the ecfr\_analyzer.py script tailored for developers and technical staff.
 
 **1. Architecture Overview**
 
