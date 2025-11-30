@@ -5,6 +5,17 @@ This is the repo to keep eCFR python codes submitted to USDS
 
 A self-contained Python web application designed to download, analyze and visualize federal regulation data from the [eCFR.gov] APIs. This tool helps support deregulation efforts by providing insights into agency complexity and regulatory volatility.
 
+**Requirements**
+1.	Write codes to download the current eCFR data from: 
+URL_AGENCIES = https://www.ecfr.gov/api/admin/v1/agencies.json
+URL_CORRECTIONS = https://www.ecfr.gov/api/admin/v1/corrections.json
+
+2.	Store the data server-side, create APIs that can retrieve the server-side stored data, 
+3.	Provide a UI to analyze it for items such as word count per agency, historical changes over time, and a checksum for each agency. 
+•	Only implement analysis that would provide meaningful information to the user. 
+•	Please add at least one of your own custom metrics that you believe may help inform decision-making more effectively. 
+4.	There should be a way for users to review the results. 
+
 **Features**
 
 - **Automated Data Ingestion:** Downloads fresh data for Federal Agencies and Corrections directly from eCFR APIs.
