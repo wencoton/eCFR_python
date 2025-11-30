@@ -69,7 +69,7 @@ def save_data(agencies, corrections):
         )
 
     # 3. Insert Corrections
-    # Robust extraction: API structure can vary
+    # Extraction: API structure can vary
     correction_list = []
     if isinstance(corrections, dict):
         if 'ecfr_corrections' in corrections:
@@ -86,7 +86,7 @@ def save_data(agencies, corrections):
         correction_list = corrections
 
     if correction_list:
-        # Debug: Print keys of the first item to help troubleshoot in console
+        # Debug: to help troubleshoot in console
         try:
             print(f"DEBUG: Sample Correction Keys found: {list(correction_list[0].keys())}")
         except Exception:
@@ -96,14 +96,14 @@ def save_data(agencies, corrections):
     for corr in correction_list:
         corr_str = json.dumps(corr)
 
-        # Robust Date Extraction: Try multiple common API date keys
+        # Date Extraction: Try multiple common API date keys
         eff_date = (corr.get('effective_on') or
                     corr.get('publication_date') or
                     corr.get('date') or
                     corr.get('last_modified') or
                     corr.get('error_corrected_on'))
 
-        # Robust Title Extraction
+        # Title Extraction
         title = (corr.get('title') or
                  corr.get('short_title') or
                  corr.get('name') or
@@ -127,11 +127,11 @@ def get_stats():
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
 
-    # Get Agencies - Convert to dict immediately
+    # Get Agencies - Convert to dict
     agencies_rows = c.execute("SELECT name, short_name, checksum FROM agencies").fetchall()
     agencies = [dict(row) for row in agencies_rows]
 
-    # Get Corrections - Convert to dict immediately
+    # Get Corrections - Convert to dict
     corrections_rows = c.execute("SELECT correction_date, title FROM corrections").fetchall()
     corrections = [dict(row) for row in corrections_rows]
 
@@ -157,7 +157,7 @@ def download_ecfr_data():
 
     # Fetch Corrections
     try:
-        # Note: Sometimes corrections API returns a large list, ensure we get JSON
+        # Ensure to get JSON
         r_corr = requests.get(URL_CORRECTIONS, timeout=20)
         r_corr.raise_for_status()
         data["corrections"] = r_corr.json()
@@ -175,7 +175,7 @@ def refresh_data():
     """API endpoint to trigger data download and storage."""
     data, errors = download_ecfr_data()
 
-    # If both failed, we can't do anything
+    # If both failed, return error messages
     if not data["agencies"] and not data["corrections"]:
         return jsonify({"status": "error", "errors": errors}), 500
 
@@ -213,7 +213,7 @@ def get_analysis():
         dates.sort()
 
         # Group by Year-Month (YYYY-MM)
-        # We handle dates like "2023-05-15" or "2023-05-15T10:00:00"
+        # Handle dates like "2023-05-15" or "2023-05-15T10:00:00"
         valid_dates = []
         for d in dates:
             if d and len(str(d)) >= 7:
@@ -221,7 +221,7 @@ def get_analysis():
 
         history = Counter(valid_dates)
 
-        # Metric 3 (Custom): "Correction Volatility"
+        # Metric 3 (CUSTOM): "Correction Volatility"
         years = [d[:4] for d in valid_dates]
         year_counts = Counter(years)
         most_volatile_year = year_counts.most_common(1)[0] if year_counts else ("None", 0)
