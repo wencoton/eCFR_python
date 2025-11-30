@@ -139,46 +139,60 @@ The application exposes two internal API endpoints used by the frontend:
   [eCFR.gov]: https://www.ecfr.gov/
 
 **CODES EXPLAINATION**
-Here is a step-by-step technical breakdown of the ecfr_analyzer.py script described in the Canvas, tailored for developers and technical staff.
+
+Here is a step-by-step technical breakdown of the ecfr\_analyzer.py script described in the Canvas, tailored for developers and technical staff.
+
 **1. Architecture Overview**
-The application is a monolithic, single-file microservice built on Flask. It follows a standard MVC (Model-View-Controller) pattern, though compressed into one file:
-•	Model: SQLite3 (Server-side persistence).
-•	Controller: Flask route handlers (@app.route) managing API logic.
-•	View: A single HTML string template served via render_template_string, containing embedded CSS and Vanilla JavaScript.
+
+The application is a monolithic, single-file microservice built on **Flask**. It follows a standard MVC (Model-View-Controller) pattern, though compressed into one file:
+
+- **Model:** SQLite3 (Server-side persistence).
+- **Controller:** Flask route handlers (@app.route) managing API logic.
+- **View:** A single HTML string template served via render\_template\_string, containing embedded CSS and Vanilla JavaScript.
+
 **2. Database Initialization (The Model)**
-On application startup (if __name__ == '__main__':), the script calls init_db().
-•	Persistence: It connects to ecfr_data.db. If the file doesn't exist, SQLite creates it.
-•	Schema Definition: It executes DDL statements to create two normalized tables if they don't exist:
-o	agencies: Stores metadata like name, short_name, and a calculated checksum.
-o	corrections: Stores historical event data (correction_date, title).
+
+On application startup (if \_\_name\_\_ == '\_\_main\_\_':), the script calls init\_db().
+
+- **Persistence:** It connects to ecfr\_data.db. If the file doesn't exist, SQLite creates it.
+- **Schema Definition:** It executes DDL statements to create two normalized tables if they don't exist:
+  - agencies: Stores metadata like name, short\_name, and a calculated checksum.
+  - corrections: Stores historical event data (correction\_date, title).
+
 **3. The ETL Pipeline (Extract, Transform, Load)**
-The core logic resides in the download_ecfr_data() and save_data() functions, triggered via the /api/refresh endpoint.
-•	Extract (Ingestion):
-o	Uses the requests library to perform blocking GET requests to the defined URL_AGENCIES and URL_CORRECTIONS constants.
-o	Implements try...except blocks to handle requests.exceptions.RequestException (timeouts, DNS failures, non-200 status codes).
-•	Transform (Processing):
-o	Normalization: The script handles inconsistent API responses (e.g., finding the correct key for dates among effective_on, publication_date, etc.) using logical OR coalescing.
-o	Hashing: For the agencies table, it serializes the JSON object and generates an MD5 hash (hashlib.md5) to create a checksum for data integrity verification.
-•	Load (Storage):
-o	Opens a thread-safe sqlite3 connection.
-o	Executes a truncate-and-load strategy (DELETE FROM ... followed by INSERT INTO ...).
-o	Commits the transaction to persist changes to disk.
+
+The core logic resides in the download\_ecfr\_data() and save\_data() functions, triggered via the /api/refresh endpoint.
+
+- **Extract (Ingestion):**
+  - Uses the requests library to perform blocking GET requests to the defined URL\_AGENCIES and URL\_CORRECTIONS constants.
+  - Implements try...except blocks to handle requests.exceptions.RequestException (timeouts, DNS failures, non-200 status codes).
+- **Transform (Processing):**
+  - **Normalization:** The script handles inconsistent API responses (e.g., finding the correct key for dates among effective\_on, publication\_date, etc.) using logical OR coalescing.
+  - **Hashing:** For the agencies table, it serializes the JSON object and generates an MD5 hash (hashlib.md5) to create a checksum for data integrity verification.
+- **Load (Storage):**
+  - Opens a thread-safe sqlite3 connection.
+  - Executes a truncate-and-load strategy (DELETE FROM ... followed by INSERT INTO ...).
+  - Commits the transaction to persist changes to disk.
+
 **4. API Endpoints (The Controller)**
+
 The Flask app exposes two RESTful endpoints consumed by the frontend fetch API:
-•	POST /api/refresh:
-o	Orchestrates the ETL process.
-o	Returns HTTP 200 on success or HTTP 500 with a JSON error payload if the extraction fails.
-•	GET /api/analysis:
-o	Querying: Fetches raw rows from SQLite using sqlite3.Row factories for dict-like access.
-o	Aggregation: Uses Python's collections.Counter to aggregate correction dates into histograms (e.g., grouping by YYYY-MM).
-o	Business Logic: Calculates the "Most Volatile Year" by sorting frequency counts and computes word counts for agency names.
-o	Serialization: Returns a JSON object containing the processed dataset ready for client-side rendering.
+
+- **POST /api/refresh**:
+  - Orchestrates the ETL process.
+  - Returns HTTP 200 on success or HTTP 500 with a JSON error payload if the extraction fails.
+- **GET /api/analysis**:
+  - **Querying:** Fetches raw rows from SQLite using sqlite3.Row factories for dict-like access.
+  - **Aggregation:** Uses Python's collections.Counter to aggregate correction dates into histograms (e.g., grouping by YYYY-MM).
+  - **Business Logic:** Calculates the "Most Volatile Year" by sorting frequency counts and computes word counts for agency names.
+  - **Serialization:** Returns a JSON object containing the processed dataset ready for client-side rendering.
+
 **5. Frontend Implementation (The View)**
+
 The UI is served via the root route /.
-•	DOM Manipulation: Uses Vanilla JavaScript (no frameworks like React or Vue) to parse the JSON response from /api/analysis and inject HTML into the DOM.
-•	Client-Side Visualization:
-o	Tables: Dynamically builds HTML table rows based on the agency array.
-o	Charts: Generates an SVG line chart programmatically using JavaScript string interpolation to calculate polyline coordinates and render <circle> elements for data points.
-•	Search: Implements a client-side filter (array.filter) on the keyup event to instantly refine the table display without additional server requests.
 
-
+- **DOM Manipulation:** Uses Vanilla JavaScript (no frameworks like React or Vue) to parse the JSON response from /api/analysis and inject HTML into the DOM.
+- **Client-Side Visualization:**
+  - **Tables:** Dynamically builds HTML table rows based on the agency array.
+  - **Charts:** Generates an SVG line chart programmatically using JavaScript string interpolation to calculate polyline coordinates and render <circle> elements for data points.
+- **Search:** Implements a client-side filter (array.filter) on the keyup event to instantly refine the table display without additional server requests.
